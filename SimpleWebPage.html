@@ -1,10 +1,40 @@
 <html>
 <head>
   <title>Hello World</title>
+  <style>
+    body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center; /* Horizontally center content */
+        align-items: center;     /* Vertically center content */
+        min-height: 100vh;      /* Ensure full viewport height */
+        margin: 0;              /* Remove default margins */
+        font-family: 'Roboto', sans-serif; /* Use Roboto font */
+        line-height: 1.5;        /* Set line height */
+    }
+
+    .container {
+        width: 600px;           /* Set page width */
+        text-align: center;    /* Center text within container - optional*/
+    }
+
+    /* If Roboto isn't available, include a fallback font */
+    @font-face {
+        font-family: 'Roboto';
+        src: url('path/to/Roboto-Regular.ttf') format('truetype'); /* Replace with actual path if you have the font file */
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    /* Example usage of a class */
+    .highlight {
+        font-weight: bold;
+        color: blue;
+    }
+  </style>
 </head>
 <body>
   <h1>Hello World &#128075;</h1>
-  <p>Hello everyone!</p>
   <p>My name is Vinod. I grew up in India, currently living in USA and still growing.
   <br>
   I studied <strong>Computer Science</strong> as my major. I have worked as backend developer & moved to front-end engineer before full stack developer became a thing.
