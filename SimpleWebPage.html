@@ -1,53 +1,48 @@
 <html>
 <head>
   <title>Hello World</title>
-  <style>
-    body {
-        display: flex;
-        flex-direction: column;
-        justify-content: center; /* Horizontally center content */
-        align-items: center;     /* Vertically center content */
-        min-height: 100vh;      /* Ensure full viewport height */
-        margin: 0;              /* Remove default margins */
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+ 
+ <style>
+    body, html {
         font-family: 'Roboto', sans-serif; /* Use Roboto font */
-        line-height: 1.5;        /* Set line height */
+
     }
 
     .container {
-        width: 600px;           /* Set page width */
-        text-align: center;    /* Center text within container - optional*/
+        margin: 40px auto;
+        width: 600px;          
+        text-align: left;  
+        line-height: 1.5;
     }
 
-    /* If Roboto isn't available, include a fallback font */
-    @font-face {
-        font-family: 'Roboto';
-        src: url('path/to/Roboto-Regular.ttf') format('truetype'); /* Replace with actual path if you have the font file */
-        font-weight: normal;
-        font-style: normal;
-    }
-
-    /* Example usage of a class */
-    .highlight {
-        font-weight: bold;
-        color: blue;
-    }
   </style>
 </head>
 <body>
+  <div class="container">
   <h1>Hello World &#128075;</h1>
-  <p>My name is Vinod. I grew up in India, currently living in USA and still growing.
-  <br>
+  <p>My name is Vinod. I grew up in India, currently living in USA and <em>still growing</em>.
+  <br><br>
   I studied <strong>Computer Science</strong> as my major. I have worked as backend developer & moved to front-end engineer before full stack developer became a thing.
   And now I am focused on Accessibility and collaborate with developers, designers and QA testers to make accessible software.
+  </p>
+  <p>
+    I was initially interested in the course "Developing Websites with Wordpress" but the course is offered in Fall semester.
+    And I was aware of the popularity of Single-page Web Apps. The course content focuses on the fundamentals on web development
+    and we will learn React along the way. All these factors made me switch my interest to this course.
   </p>
   
   <h2>My Quiet Place</h2>
   <p>Often I like to walk around this place to get some quiet time and think deeply</p>
-  <img src="/images/quiet-place.jpeg" alt="">
+  <img src="images/quiet-place.jpeg" alt="quiet place with reflection in water" width="600" height="400">
 
   <h2>My Favorite Restaurant</h2>
-  <p>I like...</p>
-  <a href="" target=_blank>Website</a>
+  <p>I like pizza and <strong>Ciao! Pizza and Pasta</strong> is one of the best pizza places in Boston.</p>
+  <a href="https://www.ciaopizzaandpasta.com/" target=_blank>Website</a>
+</div>
   
 </body>
 </html>
