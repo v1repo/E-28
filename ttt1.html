@@ -1,0 +1,57 @@
+<!-- 
+Build a tic tac toe board using HTML, CSS. Add CSS as needed to create the 3 x 3 grid of squares. Each square should be a <div> element. The squares should be 100px by 100px with a 5px margin. Hard code two X’s and one O in 3 different squares of your choice. This will help you to get the position and sizing of the X’s and O’s correct. Add CSS to change the background of any square when you hover over it. Note that the CSS should be an internal style sheet.
+-->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tic Tac Toe 1</title>
+    <style>
+
+      .board {
+        margin: 40px auto;
+        width: 320px; 
+      }
+
+      .square {
+        width: 100px;
+        height: 100px;
+        background-color: #eee;
+        border: 1px solid #ddd;
+        float: left;      
+        justify-content: center;
+        align-items: center;
+        font-size: 50px;      
+        cursor: pointer;
+        text-align: center;
+        margin: 2px;
+      }
+
+      .square:hover {
+        background-color: #ddd;
+      }
+
+    </style>
+  </head>
+  <body>
+
+    <div class="board">
+      <div class="row">
+        <div class="square">X</div>
+        <div class="square"></div>
+        <div class="square">O</div>
+      </div>
+      <div class="row">
+        <div class="square"></div>
+        <div class="square"></div>
+        <div class="square"></div>
+      </div>
+      <div class="row">
+        <div class="square"></div>
+        <div class="square"></div>
+        <div class="square">X</div>
+      </div>
+    </div>
+
+  </body>
+</html>
