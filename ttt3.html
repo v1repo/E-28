@@ -1,0 +1,74 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tic Tac Toe 3</title>
+    <style>
+
+      body {
+        margin: 40px auto;
+        width: 340px; 
+      }
+
+      .square {
+        width: 100px;
+        height: 100px;
+        background-color: #eee;
+        border: 1px solid #ddd;
+        float: left;      
+        justify-content: center;
+        align-items: center;
+        font-size: 50px;      
+        cursor: pointer;
+        text-align: center;
+        margin: 5px;
+      }
+
+      .square:hover {
+        background-color: #ddd;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div>
+      <h1>Tic Tac Toe - JS version</h1>
+      <div style="border: solid 1px #ddd; padding: 10px; margin-bottom: 10px;">
+          O's turn &rarr;
+      </div>
+          
+      <div style="border: solid 1px #ddd; padding: 10px;">
+          The game ends when there are three of the same character filling any row, column, or diagonal. The game also ends if all squares are filled and no more moves can be played.
+      </div>
+    </div>
+
+    <script>
+
+      const NUM_SQUARES = 9;
+      for (i=0; i<NUM_SQUARES; i++)
+      {
+          id = "sq"+i;
+          document.write( "<div class='square' id='" + id + "'></div>" );
+      }
+
+    </script>
+
+    <script>
+          window.onload =  function(){
+            for (let i=0; i<9; i++) {
+              document.querySelector("#sq" + i).onclick= completeAction;
+
+              function completeAction()
+              {
+                document.getElementById("sq" + i).innerHTML = "X";
+                alert(i);
+
+              }
+              
+            }
+          }
+    
+    </script>
+
+  </body>
+</html>

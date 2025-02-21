@@ -1,0 +1,95 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tic Tac Toe 4</title>
+    <style>
+
+      body {
+        margin: 40px auto;
+        width: 340px; 
+      }
+
+      .square {
+        width: 100px;
+        height: 100px;
+        background-color: #eee;
+        border: 1px solid #ddd;
+        float: left;      
+        justify-content: center;
+        align-items: center;
+        font-size: 50px;      
+        cursor: pointer;
+        text-align: center;
+        margin: 5px;
+      }
+
+      .square:hover {
+        background-color: #ddd;
+      }
+
+    </style>
+  </head>
+  <body>
+
+    <div>
+      <h1>Tic Tac Toe - JS version</h1>
+      <div id="turnBox" style="border: solid 1px #ddd; padding: 10px; margin-bottom: 10px;">
+          
+      </div>
+          
+      <div style="border: solid 1px #ddd; padding: 10px;">
+          The game ends when there are three of the same character filling any row, column, or diagonal. The game also ends if all squares are filled and no more moves can be played.
+      </div>
+    </div>
+
+    <script>
+
+      const NUM_SQUARES = 9;
+      for (i=0; i<NUM_SQUARES; i++)
+      {
+          id = "sq"+i;
+          document.write( "<div class='square' id='" + id + "'></div>" );
+      }
+
+      let currentPlayer = "";
+      let playerArray = ["X", "0"];
+
+      function chooseRandomPlayer (arr)
+      {
+        let randomIndex = Math.floor(Math.random() * arr.length);
+        return arr[randomIndex];
+      }
+
+      window.onload =  function(){
+            
+        for (let i=0; i<9; i++) {    
+          currentPlayer = chooseRandomPlayer(playerArray);
+          
+          //set player turn
+          document.getElementById("turnBox").innerHTML = currentPlayer + "'s turn &rarr;";
+          
+          document.querySelector("#sq" + i).onclick= completeAction;
+    
+          function completeAction(event)
+              {
+                const square = event.target;
+                if (square.textContent === "") {
+                  square.textContent = currentPlayer;
+                  // switch player
+                  currentPlayer = currentPlayer === 'X' ? '0' : 'X';
+                  document.getElementById("turnBox").innerHTML = currentPlayer + "'s turn &rarr;";
+                }
+                else {
+                  alert("Already taken.")
+                }
+
+              }        
+          }
+      }
+
+    </script>
+
+
+  </body>
+</html>
