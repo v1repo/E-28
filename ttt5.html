@@ -1,0 +1,225 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tic Tac Toe 5</title>
+    <style>
+
+      body {
+        margin: 40px auto;
+        width: 340px; 
+      }
+
+      .square {
+        width: 100px;
+        height: 100px;
+        background-color: #eee;
+        border: 1px solid #ddd;
+        float: left;      
+        justify-content: center;
+        align-items: center;
+        font-size: 50px;      
+        cursor: pointer;
+        text-align: center;
+        margin: 5px;
+      }
+
+      .square:hover {
+        background-color: #ddd;
+      }
+
+      #startButton {
+        display: block;
+        margin: 10px 0;
+        padding: 10px 15px;
+        background-color: #2b78ca;
+        /*background-color: #df6d1b;*/
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      #startButton:hover {
+        background-color: #354e36;
+      }
+      #gameStatus {
+        margin-top: 10px;
+        padding: 10px;
+        background-color: #f8f8f8;
+        border: 1px solid #ddd;
+        display: none;
+     
+      }
+
+    </style>
+  </head>
+  <body>
+
+    <div>
+      <h1>Tic Tac Toe - JS version</h1>
+          
+      <div style="border: solid 1px #ddd; padding: 10px;">
+          The game ends when there are three of the same character filling any row, column, or diagonal. The game also ends if all squares are filled and no more moves can be played.
+      </div>
+
+      <button id="startButton">Start Game</button>
+
+      <div id="turnBox" style="border: solid 1px #ddd; padding: 10px; margin-bottom: 10px; width: 120px;">   
+      </div>
+      <div id="gameStatus"></div>
+
+      <div id="gameBoard"></div>
+
+    </div>
+
+    <script>
+
+      const NUM_SQUARES = 9;
+      let currentPlayer = "";
+      let playerArray = ["X", "0"];
+      let gameActive = false;
+      let boardSquares = []; 
+
+      for (i=0; i<NUM_SQUARES; i++)
+      {   
+          const id = "sq" + i;
+          const square = document.createElement("div");
+          square.className = "square";
+          square.id = id;
+          //document.write( "<div class='square' id='" + id + "'></div>" );
+          document.getElementById("gameBoard").appendChild(square);
+          boardSquares.push(square);
+      }
+
+      function chooseRandomPlayer (arr)
+      {
+        let randomIndex = Math.floor(Math.random() * arr.length);
+        return arr[randomIndex];
+      }
+
+      function startGame() {
+        boardSquares.forEach(square => {
+          square.textContent = "";
+          square.onclick = completeAction;
+        });
+
+        gameActive = true;
+        currentPlayer = chooseRandomPlayer(playerArray);
+        document.getElementById("turnBox").innerHTML = currentPlayer + "'s turn &rarr;"; 
+        document.getElementById("gameStatus").style.display = "none";
+
+      }
+
+      function completeAction(event) {
+        if (!gameActive) return;
+        const square = event.target;
+
+        if (square.textContent !== "") {
+          alert("Already taken.");
+          return;
+        }
+
+        square.textContent = currentPlayer;
+
+        checkGameStatus();
+
+        if (gameActive) {
+          currentPlayer = currentPlayer === 'X' ? '0' : 'X';
+          document.getElementById("turnBox").innerHTML = currentPlayer + "'s turn &rarr;";
+        }   
+      }
+
+      function checkGameStatus() {
+        const moves = boardSquares.map(square => square.textContent || "-");
+
+        const winConditions = [
+          //3 across
+          moves[0] + moves[1] + moves[2],
+          moves[3] + moves[4] + moves[5],
+          moves[6] + moves[7] + moves[8],
+          // 3 down
+          moves[0] + moves[3] + moves[6],
+          moves[1] + moves[4] + moves[7],
+          moves[2] + moves[5] + moves[8],
+          // 2 diagonal
+          moves[0] + moves[4] + moves[8],
+          moves[2] + moves[4] + moves[6]
+        ];
+
+        const filteredWinConditions = winConditions.map(condition => 
+            condition.replace(/-/g, "")        
+        );
+
+        let winner = null;
+        for (let condition of filteredWinConditions) {
+          if (condition === "XXX") {
+            winner = "X";
+            break;
+          } else if (condition === "000") {
+            winner = "0";
+            break;
+          } 
+        }
+
+        const statusElement = document.getElementById("gameStatus");
+
+        if (winner) {
+          statusElement.textContent = winner + " wins!";
+          statusElement.style.display = "block";
+          statusElement.style.backgroundColor = "#4CAF50";
+          document.getElementById("startButton").innerHTML = "Restart Game?";
+          gameActive = false;
+        } 
+        else if (!moves.includes("-")) {
+          statusElement.textContent = "Game ended in a stalemate!";
+          statusElement.style.display = "block";
+          statusElement.style.backgroundColor = "#df6d1b";
+          document.getElementById("startButton").innerHTML = "Restart Game";
+          gameActive = false;
+        }
+
+        if (!gameActive) {
+          boardSquares.forEach(square => {
+            square.onclick = null;
+          });
+        }
+
+      }
+
+      window.onload =  function(){
+
+        document.getElementById("startButton").addEventListener("click", startGame);
+
+        startGame();
+            
+        /* for (let i=0; i<9; i++) {    
+          currentPlayer = chooseRandomPlayer(playerArray);
+          
+          //set player turn
+          document.getElementById("turnBox").innerHTML = currentPlayer + "'s turn &rarr;";
+          
+          document.querySelector("#sq" + i).onclick= completeAction;
+    
+          function completeAction(event)
+              {
+                const square = event.target;
+                if (square.textContent === "") {
+                  square.textContent = currentPlayer;
+                  // switch player
+                  currentPlayer = currentPlayer === 'X' ? '0' : 'X';
+                  document.getElementById("turnBox").innerHTML = currentPlayer + "'s turn &rarr;";
+                }
+                else {
+                  alert("Already taken.")
+                }
+
+              }        
+          } */
+      }
+
+    </script>
+
+
+  </body>
+</html>
