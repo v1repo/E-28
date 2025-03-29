@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vin's WORDLE Game</title>
+    <style>
+        /* Global styles */
+        * {
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        /* Header styles */
+        header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        /* Game container styles */
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Board styles */
+        .board {
+            display: grid;
+            grid-template-rows: repeat(6, 1fr);
+            gap: 5px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+        }
+        
+        .tile {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            background-color: #f0f0f0;
+            border: 2px solid #d3d3d3;
+            border-radius: 5px;
+            cursor: default;
+            transition: all 0.2s;
+        }
+        
+        /* Keyboard styles */
+        .keyboard {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: 8px;
+        }
+        
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .key {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 30px;
+            height: 45px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            background-color: #d3d3d3;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+        }
+        
+        .key.wide {
+            flex: 1.5;
+            font-size: 0.7rem;
+        }
+        
+        /* Game status styles */
+        .status-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        /* Color states for tiles and keys */
+        .correct {
+            background-color: #6aaa64;
+            border-color: #6aaa64;
+            color: white;
+        }
+        
+        .present {
+            background-color: #c9b458;
+            border-color: #c9b458;
+            color: white;
+        }
+        
+        .absent {
+            background-color: #787c7e;
+            border-color: #787c7e;
+            color: white;
+        }
+        
+        /* Message box styles */
+        .message-box {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            text-align: center;
+            z-index: 100;
+            transition: opacity 0.3s;
+            opacity: 0;
+        }
+        
+        .message-box.show {
+            opacity: 1;
+        }    
+        
+        .new-game-btn {
+            background-color: #6aaa64;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        /* Letter indicator panel */
+        .letter-indicator {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 5px;
+            width: 100%;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+        
+        .letter-item {
+            font-weight: bold;
+            padding: 5px;
+        }
+        
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Vin's WORDLE Game</h1>
+        <p>Guess the 5-letter word in 6 tries</p>
+    </header>
+    
+    <div class="game-container">
+        <div class="board" id="board"></div>
+        
+        <div class="letter-indicator" id="letterIndicator">
+            <h3>Available Letters:</h3>
+            <div id="availableLetters"></div>
+        </div>
+                
+        <div class="status-container">
+           
+            <button id="newGameBtn">New Game</button>
+        </div>
+    </div>
+    
+    <div class="message-box" id="messageBox"></div>
+    
+    
+    <script>
+        
+        //main game class
+        class WordleGame {
+
+            constructor() {
+                this.secretWord = '';
+                this.currentRow = 0;
+                this.currentTile = 0;
+                this.isGameOver = false;
+                this.board = [];
+                this.usedLetters = {};
+                
+                this.boardElement = document.getElementById('board');
+                this.keyboardElement = document.getElementById('keyboard');
+                this.messageBoxElement = document.getElementById('messageBox');
+                this.newGameButton = document.getElementById('newGameBtn');
+
+                this.statsNewGameButton = document.getElementById('statsNewGameBtn');
+                this.availableLettersElement = document.getElementById('availableLetters');
+                
+                // Initialize game
+                this.initializeBoard();
+                this.initializeEventListeners();
+              
+                this.initializeLetterIndicator();
+                this.fetchRandomWord();
+            }
+            
+            //create the game board
+            initializeBoard() {
+                // Create 6 rows with 5 tiles each
+                for (let i = 0; i < 6; i++) {
+                    const row = document.createElement('div');
+                    row.classList.add('row');
+                    this.boardElement.appendChild(row);
+                    
+                    const rowTiles = [];
+                    for (let j = 0; j < 5; j++) {
+                        const tile = document.createElement('div');
+                        tile.classList.add('tile');
+                        tile.dataset.row = i;
+                        tile.dataset.col = j;
+                        row.appendChild(tile);
+                        rowTiles.push({
+                            element: tile,
+                            letter: '',
+                            state: null
+                        });
+                    }
+                    this.board.push(rowTiles);
+                }
+            }
+            
+            //event listeners for keyboard input
+            initializeEventListeners() {
+                document.addEventListener('keydown', (e) => {
+                    const key = e.key.toLowerCase();
+                    
+                    if (key === 'enter') {
+                        this.handleKeyPress('enter');
+                    } else if (key === 'backspace' || key === 'delete') {
+                        this.handleKeyPress('backspace');
+                    } else if (/^[a-z]$/.test(key)) {
+                        this.handleKeyPress(key);
+                    }
+                });   
+                
+                // New game buttons - start game
+                this.newGameButton.addEventListener('click', () => {
+                    this.startNewGame();
+                });
+                
+            }
+            
+             //Initialize the letter indicator to show available letters
+            initializeLetterIndicator() {
+                const alphabet = 'abcdefghijklmnopqrstuvwxyz';
+                this.availableLettersElement.innerHTML = '';
+                
+                // add logic to update alphabets used
+            }
+            
+            // handle enter key press and delet word
+            handleKeyPress(key) {
+                if (this.isGameOver) return;
+                
+                if (key === 'enter') {
+                    this.submitGuess();
+                } else if (key === 'backspace') {
+                    this.deleteLetter();
+                } else if (/^[a-z]$/.test(key) && this.currentTile < 5) {
+                    this.addLetter(key);
+                }
+            }
+            
+            //add letter to tile
+            addLetter(letter) {
+                if (this.currentTile < 5) {
+                    const tile = this.board[this.currentRow][this.currentTile];
+                    tile.letter = letter;
+                    tile.element.textContent = letter.toUpperCase();
+                    this.currentTile++;
+                }
+            }
+            
+           //delete letter from tile
+            deleteLetter() {
+                if (this.currentTile > 0) {
+                    this.currentTile--;
+                    const tile = this.board[this.currentRow][this.currentTile];
+                    tile.letter = '';
+                    tile.element.textContent = '';
+                }
+            }
+            
+            //Submit the current row as a guess
+            submitGuess() {
+                
+                // Get the current guess
+                const guess = this.board[this.currentRow].map(tile => tile.letter).join('');
+                this.checkGuess(guess);
+                // Move to the next row
+                this.currentRow++;
+                this.currentTile = 0;
+                // Check if the game is over
+                if (guess === this.secretWord) {
+                    this.endGame(true);
+                } else if (this.currentRow >= 6) {
+                    this.endGame(false);
+                }
+            }
+            
+             //Check the guess against the secret word and update tile states
+             
+            checkGuess(guess) {
+                const secretWordArray = this.secretWord.split('');
+                const guessArray = guess.split('');
+                
+                // First, mark correct letters
+                for (let i = 0; i < 5; i++) {
+                    if (guessArray[i] === secretWordArray[i]) {
+                        this.updateTileState(i, 'correct');
+                        this.usedLetters[guessArray[i]] = 'correct';
+                        // Mark this letter as used to handle duplicates correctly
+                        secretWordArray[i] = null;
+                        guessArray[i] = null;
+                    }
+                }
+                
+                // Then, mark present letters
+                for (let i = 0; i < 5; i++) {
+                    if (guessArray[i] !== null) {
+                        const index = secretWordArray.indexOf(guessArray[i]);
+                        if (index !== -1) {
+                            this.updateTileState(i, 'present');
+                            // Only update key and used letter if it's not already marked as correct
+                            if (this.usedLetters[guessArray[i]] !== 'correct') {
+                                this.usedLetters[guessArray[i]] = 'present';
+                            }
+                            // Mark this letter as used
+                            secretWordArray[index] = null;
+                        } else {
+                            this.updateTileState(i, 'absent');
+                            // Only update key and used letter if it's not already marked
+                            if (!this.usedLetters[guessArray[i]]) {
+                                this.usedLetters[guessArray[i]] = 'absent';
+                            }
+                        }
+                    }
+                }
+                
+            }
+            
+             //Update the state of a specific tile
+            updateTileState(index, state) {
+                const tile = this.board[this.currentRow][index];
+                
+                // Add a small delay for animation
+                setTimeout(() => {
+                    tile.element.classList.add(state);
+                    tile.state = state;
+                }, index * 100);
+            }
+        
+             // Show a temporary message
+            showMessage(message) {
+                this.messageBoxElement.textContent = message;
+                this.messageBoxElement.classList.add('show');
+                
+                setTimeout(() => {
+                    this.messageBoxElement.classList.remove('show');
+                }, 2000);
+            }
+            
+            //end the current game
+            endGame(won) {
+                this.isGameOver = true;
+                
+                if (won) {
+                    this.showMessage("Congratulations!");
+                } else {
+                    this.showMessage(`Game over! The word was ${this.secretWord.toUpperCase()}`);
+        
+                }
+                
+            }
+            
+            // Start a new game
+            startNewGame() {
+                // Reset game state
+                this.currentRow = 0;
+                this.currentTile = 0;
+                this.isGameOver = false;
+                
+                // Clear the board
+                this.board.forEach(row => {
+                    row.forEach(tile => {
+                        tile.letter = '';
+                        tile.state = null;
+                        tile.element.textContent = '';
+                        tile.element.classList.remove('correct', 'present', 'absent');
+                    });
+                });
+                
+                // Reset used letters
+                this.usedLetters = {};
+                this.initializeLetterIndicator();
+                
+                // Get a new word
+                this.fetchRandomWord();
+            }
+            
+            //fetch a random word
+            fetchRandomWord() {
+                // Show loading state
+                this.showMessage("Loading word...");
+                
+                //Random Word API
+                fetch('https://random-word-api.herokuapp.com/word?length=5')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Check if the response has a valid word
+                        if (data && data.length > 0) {
+                            const word = data[0].toLowerCase();
+                            // Validating 5 letters and only alphabets
+                            if (word.length === 5 && /^[a-z]+$/.test(word)) {
+                                this.secretWord = word;
+                                console.log("Word for debugging:", this.secretWord);
+                            } else {
+                                // invalid word - trying again
+                                this.fetchRandomWord();
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching word:', error);
+
+                    });
+            }
+                       
+        }
+        
+        // Initialize the game when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const game = new WordleGame();
+        });
+    </script>
+</body>
+</html>
