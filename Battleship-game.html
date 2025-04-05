@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Battleship Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        h1 {
+            margin-bottom: 20px;
+        }
+        
+        .game-info {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .loading {
+            font-style: italic;
+            color: #666;
+            margin: 20px 0;
+        }
+        
+        .error {
+            color: #d32f2f;
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid #d32f2f;
+            border-radius: 4px;
+            background-color: #ffebee;
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(6, 60px);
+            grid-template-rows: repeat(6, 60px);
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .cell {
+            width: 60px;
+            height: 60px;
+            border: 1px solid #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            background-color: #f0f8ff;
+        }
+        
+        .cell.clicked-miss {
+            background-color: #cccccc; 
+        }
+        
+        .cell.clicked-hit {
+            background-color: #ff5252;
+        }
+        
+        .cell.ship-revealed {
+            background-color: #64b5f6;
+        }
+        
+        .game-over {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        button:hover {
+            background-color: #2a75f3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Battleship Game</h1>
+    
+    <div id="loading" class="loading">Loading ship data...</div>
+    <div id="error" class="error" style="display: none;">Error loading ship data.</div>
+    
+    <div class="game-info" style="display: none;" id="game-info">
+        <p id="message">Click on a square to make a guess!</p>
+        <p id="guesses-remaining">Guesses remaining: 20</p>
+    </div>
+    
+    <div id="game-board" class="game-board" style="display: none;"></div>
+    
+    <div id="game-over" class="game-over" style="display: none;">
+        <p><strong>Game Over!</strong></p>
+        <p>Ships revealed in blue.</p>
+        
+    </div>
+    
+    <script>
+        const GRID_SIZE = 6;
+        const MAX_GUESSES = 20;
+        
+        let ships = [];
+        let board = [];
+        let guessesRemaining = MAX_GUESSES;
+        let hits = 0;
+        let gameOver = false;
+        
+        // DOM elements
+        const loadingElement = document.getElementById('loading');
+        const errorElement = document.getElementById('error');
+        const gameInfoElement = document.getElementById('game-info');
+        const gameboardElement = document.getElementById('game-board');
+        const messageElement = document.getElementById('message');
+        const guessesRemainingElement = document.getElementById('guesses-remaining');
+        const gameOverElement = document.getElementById('game-over');
+        const resetButton = document.getElementById('reset-button');
+        
+        // Load ship data from JSON file
+        async function loadShipData() {
+            try {
+                const response = await fetch('battleship.json');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Hide loading message and show game
+                loadingElement.style.display = 'none';
+                gameInfoElement.style.display = 'block';
+                gameboardElement.style.display = 'grid';
+                
+                return data.ships;
+            } catch (error) {
+                console.error('Error loading ship data:', error);
+                loadingElement.style.display = 'none';
+                errorElement.style.display = 'block';
+                
+            }
+        }
+        
+        async function initializeGame() {
+            // Reset UI elements
+            gameboardElement.innerHTML = '';
+            gameOverElement.style.display = 'none';
+            loadingElement.style.display = 'block';
+            errorElement.style.display = 'none';
+            gameInfoElement.style.display = 'none';
+            gameboardElement.style.display = 'none';
+            
+            const shipData = await loadShipData();
+            
+            ships = placeShips(shipData);
+            
+            // Initialize empty board
+            board = Array(GRID_SIZE).fill().map(() => 
+                Array(GRID_SIZE).fill().map(() => ({ clicked: false, hasShip: false, shipId: null }))
+            );
+            
+            // Place ships on the board
+            addShipsToBoard();
+        
+            
+            // Render the game board
+            renderGameBoard();
+        }
+        
+        // Process ship data and create ship objects
+        function placeShips(shipData) {
+            return shipData.map((ship, index) => {
+                const { name, orientation, size, coords } = ship;
+                const [startCol, startRow] = coords;
+                const squares = [];
+                
+                for (let i = 0; i < size; i++) {
+                    if (orientation === "horizontal") {
+                        squares.push([startCol + i, startRow]);
+                    } else {
+                        squares.push([startCol, startRow + i]);
+                    }
+                }
+                
+                return {
+                    id: index,
+                    name,
+                    orientation,
+                    size,
+                    squares,
+                    hits: 0
+                };
+            });
+        }
+        
+        // Add ships to the board
+        function addShipsToBoard() {
+            ships.forEach(ship => {
+                ship.squares.forEach(([col, row]) => {
+                    // Check if coordinates are valid (within board boundaries)
+                    if (row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE) {
+                        board[row][col].hasShip = true;
+                        board[row][col].shipId = ship.id;
+                    } else {
+                        console.warn(`Ship ${ship.name} has coordinates outside the board: [${col}, ${row}]`);
+                    }
+                });
+            });
+        }
+        
+        // Render the game board
+        function renderGameBoard() {
+            // Clear existing board
+            gameboardElement.innerHTML = '';
+            
+            // Create cells
+            for (let row = 0; row < GRID_SIZE; row++) {
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    
+                    const cellState = board[row][col];
+                    
+                    if (cellState.clicked) {
+                        if (cellState.hasShip) {
+                            cell.classList.add('clicked-hit');
+                        } else {
+                            cell.classList.add('clicked-miss');
+                        }
+                    } else if (gameOver && cellState.hasShip) {
+                        cell.classList.add('ship-revealed');
+                    }
+                    
+                    cell.addEventListener('click', () => handleCellClick(row, col));
+                    
+                    // Add to board
+                    gameboardElement.appendChild(cell);
+                }
+            }
+        }
+        
+        // Handle cell click
+        function handleCellClick(row, col) {
+           // if (gameOver || board[row][col].clicked) return;
+            
+            board[row][col].clicked = true;
+            
+            // Decrement guesses
+            guessesRemaining--;
+            guessesRemainingElement.textContent = `Guesses remaining: ${guessesRemaining}`;
+            
+            // Check if hit or miss
+            if (board[row][col].hasShip) {
+                // Hit!
+                const shipId = board[row][col].shipId;
+                ships[shipId].hits++;
+                hits++;
+                
+                // Check if ship is sunk
+                if (ships[shipId].hits === ships[shipId].size) {
+                    messageElement.textContent = 'You sunk a ship!';
+                } else {
+                    messageElement.textContent = 'Hit!';
+                }
+                
+            } else {
+                // Miss
+                messageElement.textContent = 'Miss!';
+            }
+            
+            // stop game if guess = 0
+            if (guessesRemaining === 0) {
+                gameOver = true;
+                messageElement.textContent = 'Game over! You ran out of guesses.';
+                gameOverElement.style.display = 'block';
+            }
+            
+            // Update the board
+            renderGameBoard();
+        }
+        
+        
+        // Initialize the game on page load
+        document.addEventListener('DOMContentLoaded', initializeGame);
+    </script>
+</body>
+</html>
