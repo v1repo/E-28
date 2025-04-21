@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wordle Game - JSX</title>
+  <!-- Load React -->
+  <!--
+  <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.21.4/babel.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>-->
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 10px;
+    }
+    
+    .wordle-tile {
+      width: 45px;
+      height: 45px;
+      margin: 2px;
+      display: inline-block;
+      text-align: center;
+      line-height: 45px;
+      font-size: 20px;
+      font-weight: bold;
+      text-transform: uppercase;
+      border: 1px solid #999;
+    }
+    
+    .wordle-row {
+      margin-bottom: 5px;
+      text-align: center;
+    }
+    
+    .keyboard-row {
+      text-align: center;
+      margin: 5px 0;
+    }
+    
+    .keyboard-key {
+      display: inline-block;
+      min-width: 20px;
+      height: 30px;
+      margin: 0 2px;
+      padding: 0 5px;
+      line-height: 30px;
+      text-align: center;
+      font-weight: bold;
+      text-transform: uppercase;
+      border-radius: 2px;
+      background-color: #ddd;
+      border: 1px solid #999;
+    }
+    
+    .correct {
+      background-color: #6aaa64;
+      border-color: #6aaa64;
+      color: white;
+    }
+    
+    .present {
+      background-color: #c9b458;
+      border-color: #c9b458;
+      color: white;
+    }
+    
+    .absent {
+      background-color: #787c7e;
+      border-color: #787c7e;
+      color: white;
+    }
+    
+    .wordle-container {
+      text-align: center;
+      padding: 10px;
+    }
+    
+    .wordle-board {
+      margin-bottom: 20px;
+      display: inline-block;
+    }
+    
+    .wordle-keyboard {
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    
+    .wordle-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 10px 0 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type='text/babel'>
+
+    // Main component to display board
+    const WordleGame = () => {
+      // Constants
+      const ANSWER = "moody";
+      const GUESSES = ["might", "flood", "stray", "", "", ""];
+      const MAX_ATTEMPTS = 6;
+      const WORD_LENGTH = 5;
+
+      // Create keyboard - implement used keys later
+      const showKeyboardStatus = () => {
+        const keyStatus = {};
+        
+        // Initialize all keys as unused
+        "abcdefghijklmnopqrstuvwxyz".split('').forEach(letter => {
+          keyStatus[letter] = "unused";
+        });
+        
+        return keyStatus;
+      };
+
+      // Calculate tile status for a specific guess
+      const calculateTileStatus = (guess) => {
+        const statuses = Array(WORD_LENGTH).fill("absent");
+        
+        if (!guess) return Array(WORD_LENGTH).fill("");
+        
+        // Find correct letters first
+        for (let i = 0; i < guess.length; i++) {
+          if (guess[i] === ANSWER[i]) {
+            statuses[i] = "correct";
+          }
+        }
+        
+        // Find present letters
+        const answerLetterCount = {};
+        for (let i = 0; i < ANSWER.length; i++) {
+          const letter = ANSWER[i];
+          answerLetterCount[letter] = (answerLetterCount[letter] || 0) + 1;
+        }
+        
+        // Subtract correct matches
+        for (let i = 0; i < guess.length; i++) {
+          const letter = guess[i];
+          if (statuses[i] === "correct") {
+            answerLetterCount[letter]--;
+          }
+        }
+        
+        // Mark present letters
+        for (let i = 0; i < guess.length; i++) {
+          const letter = guess[i];
+          if (statuses[i] !== "correct" && ANSWER.includes(letter) && answerLetterCount[letter] > 0) {
+            statuses[i] = "present";
+            answerLetterCount[letter]--;
+          }
+        }
+        
+        return statuses;
+      };
+      
+      // Create board rows
+      const renderBoard = () => {
+        return Array(MAX_ATTEMPTS).fill().map((_, rowIndex) => {
+          const guess = GUESSES[rowIndex] || "";
+          const filledGuess = guess.padEnd(WORD_LENGTH, " ");
+          const tileStatuses = calculateTileStatus(guess);
+          
+          return (
+            <div key={`row-${rowIndex}`} className="wordle-row">
+              {Array(WORD_LENGTH).fill().map((_, colIndex) => {
+                const letter = filledGuess[colIndex];
+                const status = tileStatuses[colIndex];
+                let className = 'wordle-tile';
+                
+                if (status === "correct") {
+                  className += ' correct';
+                } else if (status === "present") {
+                  className += ' present';
+                } else if (status === "absent") {
+                  className += ' absent';
+                }
+                
+                return (
+                  <div 
+                    key={`tile-${rowIndex}-${colIndex}`}
+                    className={className}
+                  >
+                    {letter}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        });
+      };
+      
+      // Create keyboard
+      const renderKeyboard = () => {
+        const keyboardRows = [
+          "qwertyuiop".split(''),
+          "asdfghjkl".split(''),
+          "zxcvbnm".split('')
+        ];
+        
+        return keyboardRows.map((row, rowIndex) => {
+          return (
+            <div 
+              key={`keyboard-row-${rowIndex}`}
+              className="keyboard-row"
+            >
+              {row.map(key => {
+                let className = 'keyboard-key';
+                
+                if (status === "correct") {
+                  className += ' correct';
+                } else if (status === "present") {
+                  className += ' present';
+                } else if (status === "absent") {
+                  className += ' absent';
+                }
+                
+                return (
+                  <div
+                    key={`key-${key}`}
+                    className={className}
+                  >
+                    {key}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        });
+      };
+      
+      return (
+        <div className="wordle-container">
+          <h1 className="wordle-title">WORDLE</h1>
+          <div className="wordle-board">
+            {renderBoard()}
+          </div>
+          <div className="wordle-keyboard">
+            {renderKeyboard()}
+          </div>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<WordleGame />);
+  </script>
+</body>
+</html>
